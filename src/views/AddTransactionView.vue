@@ -1,6 +1,6 @@
 <template>
   <div class="container vh-100 pt-5">
-    <router-link to="/temp" class="backbtn">
+    <router-link :to="{name:'DashboardView',params:{userId:userId}}" class="backbtn">
       <i class="fas fa-chevron-left"></i>
       <span>Back</span>
     </router-link>
@@ -186,6 +186,7 @@ export default {
       categories,
       addTransaction,
       alert_success,
+      userId
     };
   },
 };

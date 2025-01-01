@@ -3,7 +3,9 @@
     <h1 class="text-center mb-4">Current Member</h1>
     <div class="row mx-auto col-12 col-sm-10 col-md-6">
       <div v-for="user in users" :key="user.id" class="col-6 col-lg-4 text-center">
-        <ProfileBadgeHome :user="user"></ProfileBadgeHome>
+        <router-link :to="{name:'DashboardView',params:{userId:user.id}}">
+          <ProfileBadgeHome :user="user"></ProfileBadgeHome>
+        </router-link>
       </div>
     </div>
     <NewMemberComponent></NewMemberComponent>

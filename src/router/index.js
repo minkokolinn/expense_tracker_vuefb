@@ -4,6 +4,7 @@ import TempView from '@/views/TempView.vue'
 import AddTransactionView from '@/views/AddTransactionView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import checkUserExists from '@/composables/checkUserExists'
+import DashboardView from '@/views/DashboardView.vue'
 
 
 const routes = [
@@ -21,6 +22,21 @@ const routes = [
     path: '/:userId/addtransaction',
     name: 'AddTransactionView',
     component: AddTransactionView,
+    props: true,
+    beforeEnter: async(to,from,next)=>{
+      const userId = to.params.userId;
+      const userExists = await checkUserExists(userId);
+      if(!userExists){
+        next({name:'HomeView'});
+      }else{
+        next();
+      }
+    }
+  },
+  {
+    path: '/:userId/dashboard',
+    name: 'DashboardView',
+    component: DashboardView,
     props: true,
     beforeEnter: async(to,from,next)=>{
       const userId = to.params.userId;
