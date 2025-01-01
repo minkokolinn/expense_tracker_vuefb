@@ -1,5 +1,5 @@
 <template>
-  <div class="col-6 col-lg-4 text-center">
+  <div>
     <img
       :src="user.profile"
       class="rounded-circle"
