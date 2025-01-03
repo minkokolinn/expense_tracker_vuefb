@@ -48,41 +48,21 @@
           </div>
         </div>
       </div>
-      <div class="col-12 col-lg-8 px-5 mt-5 mt-lg-0">
+
+      <div class="col-12 col-lg-8 mt-5 px-5 mt-lg-0">
         <div class="w-100 float-right">
-          <h3 class="progress-title" style="font-size: 1.1rem">
-            Food & Beverage
-          </h3>
-          <div class="progress pink">
-            <div class="progress-bar" style="width: 90%; background: #ff4b7d">
-              <div>90%</div>
-            </div>
-          </div>
-
-          <h3 class="progress-title" style="font-size: 1.1rem">
-            Transportation
-          </h3>
-          <div class="progress green">
-            <div class="progress-bar" style="width: 75%; background: #5fad56">
-              <div>75%</div>
-            </div>
-          </div>
-
-          <h3 class="progress-title" style="font-size: 1.1rem">
-            Monthly Expense
-          </h3>
-          <div class="progress yellow">
-            <div class="progress-bar" style="width: 50%; background: #e8d324">
-              <div>75%</div>
-            </div>
-          </div>
-
-          <h3 class="progress-title" style="font-size: 1.1rem">
-            Ocasional Expense
-          </h3>
-          <div class="progress blue">
-            <div class="progress-bar" style="width: 25%; background: #3485ef">
-              <div>75%</div>
+          <h6 class="text-end fw-bold mb-0" style="text-decoration: underline">
+            {{ new Date().toLocaleDateString("default", { month: "long" }) }},
+            {{ new Date().getFullYear() }}
+          </h6>
+          <div v-for="(value, key, index) in totalExpenseByCategory" :key="key">
+            <h3 class="progress-title" style="font-size: 1.1rem">
+              {{ key }} - {{ value }} bahts 
+            </h3>
+            <div class="progress">
+              <div class="progress-bar" :style="{ width: (value / totalExpenseByCategory['Total']) * 100 + '%' , backgroundColor:catColors[index]}">
+                <div>{{ ((value / totalExpenseByCategory["Total"]) * 100).toFixed(2) }}%</div>
+              </div>
             </div>
           </div>
         </div>
@@ -91,73 +71,102 @@
 
     <div class="row mt-4 px-2 px-lg-2">
       <div class="col-12 col-lg-8 offset-lg-4 px-3 px-lg-5">
-        <div class="row align-items-center">
+        <div class="row align-items-center mb-2">
           <h4 class="col-lg-6 col-12">Transactions</h4>
-          <div class="col-lg-6 col-12 d-flex justify-content-end">
-            <Filter></Filter>
+          <div
+            class="col-lg-6 col-12 d-flex justify-content-end align-items-center"
+          >
+            <Filter @filterSelectChange="filterSelectChange"></Filter>
+            <span
+              class="text-primary fw-bold mx-2 selectText"
+              @click="toggleSelect"
+              >{{ statusCheckbox === true ? "Deselect" : "Select" }}</span
+            >
           </div>
         </div>
-        {{ isLoading }}
+        <div v-if="errorTransactions">
+          <div class="alert alert-danger my-1">{{ errorTransactions }}</div>
+        </div>
+        <div v-if="errorDelete">
+          <div class="alert alert-danger my-1">{{ errorDelete }}</div>
+        </div>
+        <div v-if="successDelete">
+          <div class="alert alert-success my-1">{{ successDelete }}</div>
+        </div>
         <div v-if="isLoading">
           <Spinner></Spinner>
         </div>
+        <div v-else-if="!hasTransactions">
+          <h3 class="mt-5 text-center">No Transaction Found!</h3>
+        </div>
         <div v-else>
-          <div
-            class="card-background row ps-2 ps-lg-4 my-3 py-3"
-            style="border-radius: 20px; box-shadow: 3px 6px"
-          >
-            <div class="col-3 col-lg-2 d-flex align-items-center">
-              <i
-                class="fas fa-hamburger p-3 bg-primary rounded-3 text-white"
-                style="font-size: 30px"
-              ></i>
-            </div>
-            <div
-              class="col-5 col-lg-7 d-flex flex-column align-items-start mt-1 p-0"
-            >
-              <p class="m-0 fs-5">Pizza</p>
-              <p class="m-0 fs-6">Food & Beverage</p>
-            </div>
-            <div
-              class="col-4 col-lg-3 d-flex align-items-center justify-content-end lh-1 pe-4"
-            >
-              <div class="d-flex flex-wrap align-items-center">
-                <p class="m-0 fs-4 ms-auto">-</p>
-                <p class="m-0 ps-1 fs-5 text-break">522</p>
-                <p class="m-0 ps-1 fs-6 ms-auto">Bhat</p>
-              </div>
-            </div>
+          <div v-for="(transactions, date) in groupedTransactions" :key="date">
+            <h6 class="text-muted fw-bold">{{ date }}</h6>
+            <TransactionCard
+              v-for="transaction in transactions"
+              :key="transaction.id"
+              :transaction="transaction"
+              :showCheckbox="statusCheckbox"
+              @selectedId="selectedIdHandle"
+            />
           </div>
         </div>
       </div>
+    </div>
+    <div v-if="tidsSelected.length === 1" class="fab-edit-container">
+      <button class="fab bg-success">
+        <i class="fas fa-edit"></i>
+      </button>
+    </div>
+    <div v-if="tidsSelected.length > 0" class="fab-delete-container">
+      <button class="fab bg-danger" @click="handleDelete">
+        <i class="fas fa-trash"></i>
+      </button>
     </div>
     <router-link
       :to="{ name: 'AddTransactionView', params: { userId: user.id } }"
     >
       <div class="fab-container">
-        <button class="fab" @click="handleClick">
+        <button class="fab bg-primary">
           <i class="fas fa-plus"></i>
         </button>
       </div>
     </router-link>
+    <SelectedTransactionsCard
+      :tidsSelected="tidsSelected"
+    ></SelectedTransactionsCard>
   </div>
 </template>
 
 <script>
-import Spinner from '../components/Spinner'
+import SelectedTransactionsCard from "../components/SelectedTransactionsCard";
+import TransactionCard from "../components/TransactionCard";
+import Spinner from "../components/Spinner";
 import Filter from "../components/Filter";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import getUser from "@/composables/getUser";
 import fetchTransactions from "@/composables/fetchTransactions";
 import { useRouter } from "vue-router";
+import { Timestamp } from "firebase/firestore";
+import deleteTransactions from "@/composables/deleteTransactions";
+import categoricalExpenses from "@/composables/categoricalExpenses";
+
 export default {
   components: {
-    Spinner, Filter },
+    SelectedTransactionsCard,
+    TransactionCard,
+    Spinner,
+    Filter,
+  },
   props: ["userId"],
   setup(props) {
     let userId = ref(props.userId);
     let router = useRouter();
     let isLoading = ref(true);
+    let hasTransactions = ref(false);
+    let statusCheckbox = ref(false);
+    let tidsSelected = ref([]);
+
     // getting user info
     let { loadUser, user, errorUser } = getUser(userId.value);
     loadUser();
@@ -165,20 +174,109 @@ export default {
       router.push("/");
     }
 
-    // fetching transactions
     let { loadTransactions, transactions, errorTransactions } =
-      fetchTransactions(userId.value, 1, 2025);
-    loadTransactions().then((data) => {
-      setTimeout(()=>{
+      fetchTransactions();
+    let totalExpenseByCategory = ref({});
+    // handle filter select change
+    let filterSelectChange = ({ selectedMonth, selectedYear }) => {
+      isLoading.value = true;
+      loadTransactions(userId.value, selectedMonth, selectedYear);
+    };
+
+    // first time fetching transactions with current month and year
+    loadTransactions(
+      userId.value,
+      new Date().getMonth() + 1,
+      new Date().getFullYear()
+    );
+
+    // monitoring and handling transaction data
+    watch(transactions, (newTransactions) => {
+      if (newTransactions.length > 0) {
+        totalExpenseByCategory.value = categoricalExpenses(transactions.value);
         isLoading.value = false;
-      },2000)
-      console.log(transactions.value);
+        hasTransactions.value = true;
+      } else {
+        setTimeout(() => {
+          if (newTransactions.length === 0) {
+            isLoading.value = false;
+            hasTransactions.value = false;
+          }
+        }, 500);
+      }
+      // console.log("From watching transaction");
+      // console.log(transactions.value);
     });
+
+    const groupedTransactions = computed(() => {
+      return transactions.value.reduce((acc, transaction) => {
+        const date = Timestamp.fromDate(transaction.date.toDate())
+          .toDate()
+          .toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          });
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(transaction);
+        return acc;
+      }, {});
+    });
+
+    // toggle select
+    let toggleSelect = () => {
+      statusCheckbox.value = !statusCheckbox.value;
+      if (statusCheckbox.value === false) {
+        tidsSelected.value.length = 0;
+      }
+    };
+    // handle select id
+    let selectedIdHandle = (transactionId, checked) => {
+      if (checked) {
+        tidsSelected.value.push(transactionId);
+      } else {
+        tidsSelected.value = tidsSelected.value.filter(
+          (id) => id !== transactionId
+        );
+      }
+    };
+
+    // handle delete
+    let { doDelete, errorDelete, successDelete } = deleteTransactions();
+    let handleDelete = () => {
+      if (confirm("Are you sure to delete?")) {
+        doDelete(tidsSelected.value);
+      } else {
+      }
+    };
+    watch(successDelete, () => {
+      if (successDelete.value == "Transactions deleted successfully!") {
+        tidsSelected.value.length = 0;
+        totalExpenseByCategory.value = categoricalExpenses(transactions.value);
+      }
+    });
+
+    let catColors = ['black','green','blue','yellow','red']
 
     return {
       user,
       transactions,
+      groupedTransactions,
+      errorTransactions,
       isLoading,
+      hasTransactions,
+      filterSelectChange,
+      statusCheckbox,
+      selectedIdHandle,
+      tidsSelected,
+      toggleSelect,
+      handleDelete,
+      errorDelete,
+      successDelete,
+      totalExpenseByCategory,
+      catColors
     };
   },
 };
@@ -237,17 +335,31 @@ export default {
   z-index: 1;
 }
 .fab {
-  background-color: #0c6dfd;
   color: #fff;
-  padding: 10px;
+  padding: 25px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  font-size: 50px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 30px;
+  box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.2);
+}
+.fab-delete-container {
+  position: fixed;
+  bottom: 140px;
+  right: 40px;
+  z-index: 1;
+}
+.fab-edit-container {
+  position: fixed;
+  bottom: 230px;
+  right: 40px;
+  z-index: 1;
 }
 
 .fab:hover {
   background-color: #08439b;
+}
+.selectText {
+  cursor: pointer;
 }
 </style>

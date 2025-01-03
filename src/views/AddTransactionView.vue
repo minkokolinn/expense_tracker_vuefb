@@ -58,7 +58,7 @@
             </div>
           </div>
         </div>
-        <div class="row">
+        <div class="row" v-if="type!=='in'">
           <div class="mx-auto col-12 col-sm-10 col-md-6 mt-4">
             <label for="categoryId" class="form-label ms-2 mb-2"
               >Category</label
@@ -159,7 +159,7 @@ export default {
         title: title.value,
         amount: amount.value,
         type: type.value,
-        catId: selectcategory.value,
+        catId: type.value==='in'?'':selectcategory.value,
         userId: userId.value,
       };
       await addDocument(newTrasaction);
