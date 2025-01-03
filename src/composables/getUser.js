@@ -4,8 +4,8 @@ import { ref } from "vue";
 
 let getUser = (userId) => {
   let user = ref(null);
-  let error = ref(null);
-  let load = async () => {
+  let errorUser = ref(null);
+  let loadUser = async () => {
     try {
       let userDocRef = doc(db, "users", userId);
       onSnapshot(userDocRef, userDocSnap=>{
@@ -17,10 +17,10 @@ let getUser = (userId) => {
       })
     } catch (err) {
       console.log(err.message);
-      error.value = err.message;
+      errorUser.value = err.message;
     }
   };
-  return {load,user,error}
+  return {loadUser,user,errorUser}
 };
 
 export default getUser;

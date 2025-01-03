@@ -1,6 +1,9 @@
 <template>
   <div class="container vh-100 pt-5">
-    <router-link :to="{name:'DashboardView',params:{userId:userId}}" class="backbtn">
+    <router-link
+      :to="{ name: 'DashboardView', params: { userId: userId } }"
+      class="backbtn"
+    >
       <i class="fas fa-chevron-left"></i>
       <span>Back</span>
     </router-link>
@@ -8,106 +11,112 @@
     <div v-if="alert_success" class="alert alert-success" role="alert">
       Transaction added successfully!
     </div>
-    <div>
-      <div class="row">
-        <div class="mx-auto col-12 col-sm-10 col-md-6 mt-1">
-          <label for="dateId" class="ms-2 mb-2">Date</label>
-          <input
-            v-model="date"
-            type="date"
-            class="form-control"
-            name=""
-            id="dateId"
-          />
-        </div>
-      </div>
-      <!-- radio -->
-      <div class="row">
-        <div class="mx-auto col-12 col-sm-10 col-md-6 mt-2">
-          <div class="row ms-2">
-            <div class="form-check col-6">
-              <input
-                v-model="type"
-                class="form-check-input"
-                type="radio"
-                name="transaction_type"
-                value="out"
-                id="cashoutid"
-                checked
-              />
-              <label class="form-check-label" for="cashoutid"> Cash Out </label>
-            </div>
-            <div class="form-check col-6">
-              <input
-                v-model="type"
-                class="form-check-input"
-                type="radio"
-                name="transaction_type"
-                value="in"
-                id="cashinid"
-              />
-              <label class="form-check-label" for="cashinid"> Cash In </label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="mx-auto col-12 col-sm-10 col-md-6 mt-4">
-          <label for="categoryId" class="form-label ms-2 mb-2">Category</label>
-          <select
-            v-model="selectcategory"
-            class="form-select"
-            id="categoryId"
-            aria-label="Default select example"
-          >
-            <option
-              :value="category"
-              v-for="category in categories"
-              :key="category.id"
-            >
-              {{ category.name }}
-            </option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="mx-auto col-12 col-sm-10 col-md-6 mt-4">
-          <div class="form-floating p-0 mt-2">
+    <form @submit.prevent="addTransaction">
+      <div>
+        <div class="row">
+          <div class="mx-auto col-12 col-sm-10 col-md-6 mt-1">
+            <label for="dateId" class="ms-2 mb-2">Date</label>
             <input
-              type="text"
-              v-model="title"
-              class="form-control ps-4"
-              id="titleId"
-              placeholder="name@example.com"
+              v-model="date"
+              type="date"
+              class="form-control"
+              name=""
+              id="dateId"
+              required
             />
-            <label for="titleId" class="ps-4">Title</label>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="mx-auto col-12 col-sm-10 col-md-6 mt-2">
-          <div class="form-floating p-0 mt-2">
-            <input
-              type="number"
-              v-model="amount"
-              class="form-control ps-4"
-              id="amountId"
-              placeholder="name@example.com"
-            />
-            <label for="amountId" class="ps-4">Amount</label>
+        <!-- radio -->
+        <div class="row">
+          <div class="mx-auto col-12 col-sm-10 col-md-6 mt-2">
+            <div class="row ms-2">
+              <div class="form-check col-6">
+                <input
+                  v-model="type"
+                  class="form-check-input"
+                  type="radio"
+                  name="transaction_type"
+                  value="out"
+                  id="cashoutid"
+                  checked
+                />
+                <label class="form-check-label" for="cashoutid">
+                  Cash Out
+                </label>
+              </div>
+              <div class="form-check col-6">
+                <input
+                  v-model="type"
+                  class="form-check-input"
+                  type="radio"
+                  name="transaction_type"
+                  value="in"
+                  id="cashinid"
+                />
+                <label class="form-check-label" for="cashinid"> Cash In </label>
+              </div>
+            </div>
           </div>
-          <div class="d-flex justify-content-end">
-            <button
-              type="button"
-              @click="addTransaction"
-              class="btn btn-outline-dark w-25 mt-3"
+        </div>
+        <div class="row">
+          <div class="mx-auto col-12 col-sm-10 col-md-6 mt-4">
+            <label for="categoryId" class="form-label ms-2 mb-2"
+              >Category</label
             >
-              Add
-            </button>
+            <select
+              v-model="selectcategory"
+              class="form-select"
+              id="categoryId"
+              aria-label="Default select example"
+              required
+            >
+              <option
+                :value="category"
+                v-for="category in categories"
+                :key="category.id"
+              >
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="mx-auto col-12 col-sm-10 col-md-6 mt-4">
+            <div class="form-floating p-0 mt-2">
+              <input
+                type="text"
+                v-model="title"
+                class="form-control ps-4"
+                id="titleId"
+                placeholder="name@example.com"
+                required
+              />
+              <label for="titleId" class="ps-4">Title</label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="mx-auto col-12 col-sm-10 col-md-6 mt-2">
+            <div class="form-floating p-0 mt-2">
+              <input
+                type="number"
+                v-model="amount"
+                class="form-control ps-4"
+                id="amountId"
+                placeholder="name@example.com"
+                required
+              />
+              <label for="amountId" class="ps-4">Amount</label>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-outline-dark w-25 mt-3">
+                Add
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </form>
   </div>
 </template>
 
@@ -116,7 +125,7 @@ import getCategories from "@/composables/getCategories";
 import { ref, watch } from "vue";
 import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
 import createDocument from "@/composables/createDocument";
-import { db } from '@/firebase/config';
+import { db } from "@/firebase/config";
 export default {
   props: ["userId"],
   setup(props) {
@@ -127,7 +136,7 @@ export default {
     let { errorInsert, addDocument } = createDocument("transactions");
 
     // getting today date
-    let todayDate = new Date().toISOString().split("T")[0];
+    let todayDate = new Date().toLocaleDateString('en-CA');
 
     // bind field
     let date = ref(todayDate);
@@ -154,7 +163,7 @@ export default {
         userId: userId.value,
       };
       await addDocument(newTrasaction);
-      await updateBalance(userId.value, amount.value, type.value)
+      await updateBalance(userId.value, amount.value, type.value);
       alert_success.value = true;
       type.value = "out";
       selectcategory.value = categories.value[0];
@@ -186,7 +195,7 @@ export default {
       categories,
       addTransaction,
       alert_success,
-      userId
+      userId,
     };
   },
 };
