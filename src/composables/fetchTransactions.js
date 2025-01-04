@@ -14,7 +14,7 @@ import { ref } from "vue";
 let fetchTransactions = () => {
   let errorTransactions = ref(null);
   let transactions = ref([]);
-  
+
   let loadTransactions = async (userId, month, year) => {
     try {
       const q = query(
@@ -28,15 +28,19 @@ let fetchTransactions = () => {
         transactions.value = colSnap.docs.map((docSnap) => {
           let transactionData = docSnap.data();
           return {
-            id:docSnap.id,...transactionData
+            id: docSnap.id,
+            ...transactionData,
           };
         });
       });
     } catch (err) {
       if (err instanceof Error && err.message.includes("Failed to fetch")) {
         // Internet disconnected error
-        console.log("Internet disconnected. Please check your connection and try again.");
-        errorTransactions.value = "Internet disconnected. Please check your connection and try again.";
+        console.log(
+          "Internet disconnected. Please check your connection and try again."
+        );
+        errorTransactions.value =
+          "Internet disconnected. Please check your connection and try again.";
       } else {
         // Other error
         console.log(err.message);

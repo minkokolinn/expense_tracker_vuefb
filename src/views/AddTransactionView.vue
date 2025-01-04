@@ -109,7 +109,7 @@
               <label for="amountId" class="ps-4">Amount</label>
             </div>
             <div class="d-flex justify-content-end">
-              <button type="submit" class="btn btn-outline-dark w-25 mt-3">
+              <button type="submit" class="btn btn-outline-dark w-25 mt-3" :disabled="loadingInsert">
                 Add
               </button>
             </div>
@@ -151,7 +151,14 @@ export default {
     let amount = ref(null);
     let userId = ref(props.userId);
 
+    let loadingInsert = ref(false)
+
     let addTransaction = async () => {
+      if(loadingInsert.value){
+        alert("Wait for the first transaction to be completed")
+        return;
+      }
+      loadingInsert.value = true;
       let tempdate = new Date(date.value);
       tempdate.setHours(0, 0, 0, 0);
       let newTrasaction = {
@@ -171,7 +178,8 @@ export default {
       amount.value = null;
       setTimeout(() => {
         alert_success.value = false;
-      }, 2000);
+      }, 1000);
+      loadingInsert.value = false;
     };
 
     let updateBalance = async (userId, amount, type) => {
@@ -196,6 +204,7 @@ export default {
       addTransaction,
       alert_success,
       userId,
+      loadingInsert
     };
   },
 };
