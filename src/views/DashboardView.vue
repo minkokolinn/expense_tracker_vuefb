@@ -57,11 +57,23 @@
           </h6>
           <div v-for="(value, key, index) in totalExpenseByCategory" :key="key">
             <h3 class="progress-title" style="font-size: 1.1rem">
-              {{ key }} - {{ value }} bahts 
+              {{ key }} - {{ value }} bahts
             </h3>
             <div class="progress">
-              <div class="progress-bar" :style="{ width: (value / totalExpenseByCategory['Total']) * 100 + '%' , backgroundColor:catColors[index]}">
-                <div>{{ ((value / totalExpenseByCategory["Total"]) * 100).toFixed(2) }}%</div>
+              <div
+                class="progress-bar"
+                :style="{
+                  width: (value / totalExpenseByCategory['Total']) * 100 + '%',
+                  backgroundColor: catColors[index],
+                }"
+              >
+                <div>
+                  {{
+                    ((value / totalExpenseByCategory["Total"]) * 100).toFixed(
+                      2
+                    )
+                  }}%
+                </div>
               </div>
             </div>
           </div>
@@ -113,11 +125,20 @@
         </div>
       </div>
     </div>
-    <div v-if="tidsSelected.length === 1" class="fab-edit-container">
-      <button class="fab bg-success">
-        <i class="fas fa-edit"></i>
-      </button>
-    </div>
+    <router-link
+    v-if="tidsSelected.length === 1"
+      :to="{
+        name: 'UpdateTransactionView',
+        params: { tidToUpdate: tidsSelected[0] },
+      }"
+    >
+      <div v-if="tidsSelected.length === 1" class="fab-edit-container">
+        <button class="fab bg-success">
+          <i class="fas fa-edit"></i>
+        </button>
+      </div>
+    </router-link>
+
     <div v-if="tidsSelected.length > 0" class="fab-delete-container">
       <button class="fab bg-danger" @click="handleDelete">
         <i class="fas fa-trash"></i>
@@ -258,7 +279,7 @@ export default {
       }
     });
 
-    let catColors = ['black','green','blue','yellow','red']
+    let catColors = ["black", "green", "blue", "yellow", "red"];
 
     return {
       user,
@@ -276,7 +297,7 @@ export default {
       errorDelete,
       successDelete,
       totalExpenseByCategory,
-      catColors
+      catColors,
     };
   },
 };
