@@ -188,7 +188,7 @@ export default {
       }
       loadingUpdate.value = true;
       let tempdate = new Date(date.value);
-      tempdate.setHours(0, 0, 0, 0);
+      tempdate.setHours(14, 0, 0, 0);
       let newTransaction = {
         date: Timestamp.fromDate(tempdate),
         title: title.value,
