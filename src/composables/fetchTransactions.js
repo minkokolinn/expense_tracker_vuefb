@@ -12,8 +12,6 @@ import {
 } from "firebase/firestore";
 import { ref } from "vue";
 
-const moment = require("moment-timezone");
-
 let fetchTransactions = () => {
   let errorTransactions = ref(null);
   let transactions = ref([]);
