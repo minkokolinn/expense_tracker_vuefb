@@ -11,6 +11,7 @@
     "bootstrap": "^5.3.3",
     "core-js": "^3.8.3",
     "firebase": "^11.1.0",
+    "moment-timezone": "^0.5.46",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3"
   },
