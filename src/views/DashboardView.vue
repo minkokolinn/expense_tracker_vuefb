@@ -225,8 +225,8 @@ export default {
           }
         }, 500);
       }
-      console.log("From watching transaction");
-      console.log(transactions.value);
+      // console.log("From watching transaction");
+      // console.log(transactions.value);
     });
 
     const groupedTransactions = computed(() => {

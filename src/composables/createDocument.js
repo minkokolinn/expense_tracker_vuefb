@@ -4,18 +4,20 @@ import { ref } from "vue";
 
 let createDocument = (colName) => {
   let error = ref(null);
+  let newDocId = ref(null);
 
   let addDocument = async (docObj) => {
     try {
       let colRef = collection(db, colName);
-      await addDoc(colRef, docObj);
+      let docRef = await addDoc(colRef, docObj);
+      newDocId.value = docRef.id;
     } catch (err) {
         console.log(err.message);
         error.value = err.message;
     }
   };
 
-  return {error, addDocument}
+  return {error, addDocument, newDocId}
 };
 
 export default createDocument;
