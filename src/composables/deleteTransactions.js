@@ -1,6 +1,7 @@
 import { db } from "@/firebase/config";
 import { doc, getDoc, updateDoc, writeBatch } from "firebase/firestore";
 import { ref } from "vue";
+import deleteEom from "@/composables/deleteEom";
 
 let deleteTransactions = () => {
   let errorDelete = ref(null);
@@ -36,6 +37,12 @@ let deleteTransactions = () => {
 
       userBalance += totalAmount;
       await updateDoc(userRef, { balance: userBalance });
+
+      // update eom
+      let targetDate = new Date(tempTransactions[0].date.toDate());
+      let targetYear = targetDate.getFullYear();
+      let targetMonth = targetDate.getMonth()+1;
+      await deleteEom(userSnap.id,targetYear,targetMonth,totalAmount);
       
     } catch (err) {
       console.error("Error deleting documents:", err);

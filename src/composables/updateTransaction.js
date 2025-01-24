@@ -1,6 +1,7 @@
 import { db } from "@/firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { ref } from "vue";
+import updateEom from '@/composables/updateEom';
 
 let updateTransaction = () => {
   let errorUpdate = ref(null);
@@ -15,6 +16,7 @@ let updateTransaction = () => {
         let oldAmount = oldTransaction.amount;
         let oldType = oldTransaction.type;
 
+        // update transaction info
         await updateDoc(transactionRef, newTransaction);
 
         // update user balance
@@ -35,6 +37,11 @@ let updateTransaction = () => {
         }
 
         await updateDoc(userRef, {balance:userBalance});
+
+        // update eom balance
+        let oldDate = new Date(oldTransaction.date.toDate());
+        await updateEom(userId,oldDate.getFullYear(),oldDate.getMonth()+1,transactionSnap,newTransaction);
+
         successUpdate.value = "Transaction Updated Successfully..."
       }else{
         console.log("Transaction Not Found!");

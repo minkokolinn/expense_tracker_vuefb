@@ -1,4 +1,5 @@
 <template>
+  <h3>Update</h3>
   <div class="container vh-100 pt-5">
     <router-link v-if="userId"
       :to="{ name: 'DashboardView', params: { userId: userId } }"
@@ -25,6 +26,7 @@
               class="form-control"
               name=""
               id="dateId"
+              readonly
               required
             />
           </div>
@@ -187,10 +189,8 @@ export default {
         return;
       }
       loadingUpdate.value = true;
-      let tempdate = new Date(date.value);
-      tempdate.setHours(14, 0, 0, 0);
+      
       let newTransaction = {
-        date: Timestamp.fromDate(tempdate),
         title: title.value,
         amount: amount.value,
         type: type.value,

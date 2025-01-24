@@ -44,7 +44,7 @@
               style="font-size: 2rem; margin-right: 10px"
               >{{ user.balance }}</span
             >
-            <span class="text-white">Bhat</span>
+            <span class="text-white">Baht</span>
           </div>
         </div>
       </div>
@@ -112,11 +112,26 @@
           <h3 class="mt-5 text-center">No Transaction Found!</h3>
         </div>
         <div v-else>
-          <div v-for="(transactions, date) in groupedTransactions" :key="date">
-            <h6 class="text-muted fw-bold">{{ date }}</h6>
+          <div
+            v-for="(transaction, index) in processedTransactions"
+            :key="transaction.id"
+          >
+            <h6
+              v-if="
+                index === 0 ||
+                !isSameDate(transaction.date, transactions[index - 1].date)
+              "
+              class="text-muted fw-bold"
+            >
+              {{
+                transaction.date.toDate().toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              }}
+            </h6>
             <TransactionCard
-              v-for="transaction in transactions"
-              :key="transaction.id"
               :transaction="transaction"
               :showCheckbox="statusCheckbox"
               @selectedId="selectedIdHandle"
@@ -126,7 +141,7 @@
       </div>
     </div>
     <router-link
-    v-if="tidsSelected.length === 1"
+      v-if="tidsSelected.length === 1"
       :to="{
         name: 'UpdateTransactionView',
         params: { tidToUpdate: tidsSelected[0] },
@@ -164,13 +179,21 @@ import SelectedTransactionsCard from "../components/SelectedTransactionsCard";
 import TransactionCard from "../components/TransactionCard";
 import Spinner from "../components/Spinner";
 import Filter from "../components/Filter";
-import { computed, ref, watch } from "vue";
+import { computed, getTransitionRawChildren, onMounted, onUpdated, ref, watch } from "vue";
 import getUser from "@/composables/getUser";
 import fetchTransactions from "@/composables/fetchTransactions";
-import { useRouter } from "vue-router";
-import { Timestamp } from "firebase/firestore";
+import { onBeforeRouteUpdate, useRouter } from "vue-router";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  Timestamp,
+  where,
+} from "firebase/firestore";
 import deleteTransactions from "@/composables/deleteTransactions";
 import categoricalExpenses from "@/composables/categoricalExpenses";
+import { db } from "@/firebase/config";
 
 export default {
   components: {
@@ -187,6 +210,7 @@ export default {
     let hasTransactions = ref(false);
     let statusCheckbox = ref(false);
     let tidsSelected = ref([]);
+    let eomValue = ref(null);
 
     // getting user info
     let { loadUser, user, errorUser } = getUser(userId.value);
@@ -195,11 +219,29 @@ export default {
       router.push("/");
     }
 
+    let getEomValue = async (userId, year, month) => {
+      let eomQuery = query(
+        collection(db, "eoms"),
+        where("userId", "==", userId),
+        where("year", "==", year),
+        where("month", "==", month)
+      );
+      let eomSnap = await getDocs(eomQuery);
+      if (eomSnap.docs.length === 1) {
+        let eomDocSnap = eomSnap.docs[0];
+        eomValue.value = eomDocSnap.data().balance;
+      }
+    };
+
     let { loadTransactions, transactions, errorTransactions } =
       fetchTransactions();
     let totalExpenseByCategory = ref({});
+
     // handle filter select change
-    let filterSelectChange = ({ selectedMonth, selectedYear }) => {
+    let filterSelectChange = async ({ selectedMonth, selectedYear }) => {
+      // getting eom Balance of selected month and year
+      getEomValue(userId.value, selectedYear, selectedMonth);
+
       isLoading.value = true;
       loadTransactions(userId.value, selectedMonth, selectedYear);
     };
@@ -209,6 +251,11 @@ export default {
       userId.value,
       new Date().getMonth() + 1,
       new Date().getFullYear()
+    );
+    getEomValue(
+      userId.value,
+      new Date().getFullYear(),
+      new Date().getMonth() + 1
     );
 
     // monitoring and handling transaction data
@@ -225,25 +272,36 @@ export default {
           }
         }, 500);
       }
+
       // console.log("From watching transaction");
       // console.log(transactions.value);
     });
 
-    const groupedTransactions = computed(() => {
-      return transactions.value.reduce((acc, transaction) => {
-        const date = Timestamp.fromDate(transaction.date.toDate())
-          .toDate()
-          .toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          });
-        if (!acc[date]) {
-          acc[date] = [];
+    let processedTransactions = computed(() => {
+      let tmpBalanceHistory = eomValue.value;
+      let isLastRecord = true;
+      let preAmount = 0;
+      let preType = "";
+
+      return transactions.value.map((transaction) => {
+        if (isLastRecord) {
+          transaction["balanceHistory"] = tmpBalanceHistory;
+          isLastRecord = false;
+        } else {
+          if (preType == "in") {
+            tmpBalanceHistory = tmpBalanceHistory - preAmount;
+            transaction["balanceHistory"] = tmpBalanceHistory;
+          } else if (preType == "out") {
+            tmpBalanceHistory = tmpBalanceHistory + preAmount;
+            transaction["balanceHistory"] = tmpBalanceHistory;
+          }
         }
-        acc[date].push(transaction);
-        return acc;
-      }, {});
+
+        preAmount = transaction.amount;
+        preType = transaction.type;
+
+        return transaction;
+      });
     });
 
     // toggle select
@@ -266,9 +324,10 @@ export default {
 
     // handle delete
     let { doDelete, errorDelete, successDelete } = deleteTransactions();
-    let handleDelete = () => {
+    let handleDelete = async () => {
       if (confirm("Are you sure to delete?")) {
-        doDelete(tidsSelected.value);
+        await doDelete(tidsSelected.value);
+        router.go(0);
       } else {
       }
     };
@@ -281,10 +340,20 @@ export default {
 
     let catColors = ["black", "green", "blue", "yellow", "red"];
 
+    let isSameDate = (date1, date2) => {
+      const date1Date = date1.toDate();
+      const date2Date = date2.toDate();
+      return (
+        date1Date.getFullYear() === date2Date.getFullYear() &&
+        date1Date.getMonth() === date2Date.getMonth() &&
+        date1Date.getDate() === date2Date.getDate()
+      );
+    };
+
     return {
       user,
       transactions,
-      groupedTransactions,
+      processedTransactions,
       errorTransactions,
       isLoading,
       hasTransactions,
@@ -298,6 +367,8 @@ export default {
       successDelete,
       totalExpenseByCategory,
       catColors,
+      isSameDate,
+      eomValue,
     };
   },
 };

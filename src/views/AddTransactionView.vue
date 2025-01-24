@@ -58,7 +58,7 @@
             </div>
           </div>
         </div>
-        <div class="row" v-if="type!=='in'">
+        <div class="row" v-if="type !== 'in'">
           <div class="mx-auto col-12 col-sm-10 col-md-6 mt-4">
             <label for="categoryId" class="form-label ms-2 mb-2"
               >Category</label
@@ -90,6 +90,7 @@
                 id="titleId"
                 placeholder="name@example.com"
                 required
+                autocomplete="off"
               />
               <label for="titleId" class="ps-4">Title</label>
             </div>
@@ -109,7 +110,11 @@
               <label for="amountId" class="ps-4">Amount</label>
             </div>
             <div class="d-flex justify-content-end">
-              <button type="submit" class="btn btn-outline-dark w-25 mt-3" :disabled="loadingInsert">
+              <button
+                type="submit"
+                class="btn btn-outline-dark w-25 mt-3"
+                :disabled="loadingInsert"
+              >
                 Add
               </button>
             </div>
@@ -123,22 +128,35 @@
 <script>
 import getCategories from "@/composables/getCategories";
 import { ref, watch } from "vue";
-import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  Timestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import createDocument from "@/composables/createDocument";
+import processEom from "@/composables/processEom";
 import { db } from "@/firebase/config";
 export default {
   props: ["userId"],
   setup(props) {
     let alert_success = ref(false);
-    // importing utilities
+
+    // fetching categories and put them in form
     let { load, categories, error } = getCategories();
     load();
-    let { errorInsert, addDocument } = createDocument("transactions");
 
     // getting today date
-    let todayDate = new Date().toLocaleDateString('en-CA');
+    let todayDate = new Date().toLocaleDateString("en-CA");
 
-    // bind field
+    // adding new transaction process
+    let { errorInsert, addDocument } = createDocument("transactions");
+
     let date = ref(todayDate);
     let type = ref("out");
     let selectcategory = ref(null);
@@ -151,37 +169,59 @@ export default {
     let amount = ref(null);
     let userId = ref(props.userId);
 
-    let loadingInsert = ref(false)
+    let loadingInsert = ref(false);
 
     let addTransaction = async () => {
-      if(loadingInsert.value){
-        alert("Wait for the first transaction to be completed")
+      if (loadingInsert.value) {
+        alert("Wait for the first transaction to be completed");
         return;
       }
       loadingInsert.value = true;
-      let tempdate = new Date(date.value);
-      tempdate.setHours(14, 0, 0, 0);
+      let inputDate = new Date(date.value);
+      let combinedTimestamp = Timestamp.fromDate(
+        new Date(
+          inputDate.getFullYear(),
+          inputDate.getMonth(),
+          inputDate.getDate(),
+          new Date().getHours(),
+          new Date().getMinutes(),
+          new Date().getSeconds()
+        )
+      );
+
       let newTrasaction = {
-        date: Timestamp.fromDate(tempdate),
+        date: combinedTimestamp,
         title: title.value,
         amount: amount.value,
         type: type.value,
-        catId: type.value==='in'?'':selectcategory.value,
+        catId: type.value === "in" ? "" : selectcategory.value,
         userId: userId.value,
       };
-      await addDocument(newTrasaction);
-      await updateBalance(userId.value, amount.value, type.value);
-      alert_success.value = true;
+
+      await Promise.all([
+        addDocument(newTrasaction),
+        updateBalance(userId.value, amount.value, type.value),
+        processEom(
+          userId.value,
+          inputDate.getFullYear(),
+          inputDate.getMonth() + 1,
+          amount.value,
+          type.value
+        ),
+      ]);
+
       type.value = "out";
       selectcategory.value = categories.value[0];
       title.value = null;
       amount.value = null;
+      alert_success.value = true;
       setTimeout(() => {
         alert_success.value = false;
       }, 1000);
       loadingInsert.value = false;
     };
 
+    // updating users' balance due to inserted transaction
     let updateBalance = async (userId, amount, type) => {
       let userRef = doc(db, "users", userId);
       let userSnap = await getDoc(userRef);
@@ -204,7 +244,7 @@ export default {
       addTransaction,
       alert_success,
       userId,
-      loadingInsert
+      loadingInsert,
     };
   },
 };
