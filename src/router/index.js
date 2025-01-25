@@ -7,6 +7,7 @@ import checkUserExists from '@/composables/checkUserExists'
 import DashboardView from '@/views/DashboardView.vue'
 import UpdateTransactionView from '@/views/UpdateTransactionView.vue'
 import checkTransactionExists from '@/composables/checkTransactionExists'
+import ProfileView from '@/views/ProfileView.vue'
 
 
 const routes = [
@@ -54,6 +55,21 @@ const routes = [
     path: '/:userId/dashboard',
     name: 'DashboardView',
     component: DashboardView,
+    props: true,
+    beforeEnter: async(to,from,next)=>{
+      const userId = to.params.userId;
+      const userExists = await checkUserExists(userId);
+      if(!userExists){
+        next({name:'HomeView'});
+      }else{
+        next();
+      }
+    }
+  },
+  {
+    path: '/:userId/profile',
+    name: 'ProfleView',
+    component: ProfileView,
     props: true,
     beforeEnter: async(to,from,next)=>{
       const userId = to.params.userId;

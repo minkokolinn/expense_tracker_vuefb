@@ -1,28 +1,7 @@
 <template>
-  <div v-if="user" class="container pt-5 bg-white">
-    <div class="flex-row d-flex justify-content-between align-items-center">
-      <div class="ms-2 ms-lg-5">
-        <h1 class="text-center mb-3" style="font-size: 26px">
-          <router-link to="/" class="backbtn">
-            <i class="fas fa-long-arrow-alt-left"></i>
-          </router-link>
-          Dashboard
-        </h1>
-      </div>
-      <div
-        class="d-flex align-items-center me-2 me-lg-5 pb-2"
-        style="border-bottom: 3px solid gray"
-      >
-        <img
-          :src="user.profile"
-          class="rounded-circle"
-          style="width: 40px"
-          alt="Avatar"
-        />
-        <p class="fw-bold mb-0 ms-2" style="font-size: 14px">{{ user.name }}</p>
-      </div>
-    </div>
-    <div class="row mt-5">
+  <div v-if="user" class="container pt-4 bg-white">
+    <DashboardNavbar :user="user"></DashboardNavbar>
+    <div class="row mt-3">
       <div class="col-12 col-lg-4 px-3 px-lg-5">
         <div
           class="bg-primary d-flex flex-column align-items-center ps-5 pt-4"
@@ -80,7 +59,6 @@
         </div>
       </div>
     </div>
-
     <div class="row mt-4 px-2 px-lg-2">
       <div class="col-12 col-lg-8 offset-lg-4 px-3 px-lg-5">
         <div class="row align-items-center mb-2">
@@ -140,6 +118,7 @@
         </div>
       </div>
     </div>
+    
     <router-link
       v-if="tidsSelected.length === 1"
       :to="{
@@ -153,7 +132,6 @@
         </button>
       </div>
     </router-link>
-
     <div v-if="tidsSelected.length > 0" class="fab-delete-container">
       <button class="fab bg-danger" @click="handleDelete">
         <i class="fas fa-trash"></i>
@@ -175,14 +153,22 @@
 </template>
 
 <script>
+import DashboardNavbar from '../components/DashboardNavbar'
 import SelectedTransactionsCard from "../components/SelectedTransactionsCard";
 import TransactionCard from "../components/TransactionCard";
 import Spinner from "../components/Spinner";
 import Filter from "../components/Filter";
-import { computed, getTransitionRawChildren, onMounted, onUpdated, ref, watch } from "vue";
+import {
+  computed,
+  getTransitionRawChildren,
+  onMounted,
+  onUpdated,
+  ref,
+  watch,
+} from "vue";
 import getUser from "@/composables/getUser";
 import fetchTransactions from "@/composables/fetchTransactions";
-import { onBeforeRouteUpdate, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import {
   collection,
   doc,
@@ -197,6 +183,7 @@ import { db } from "@/firebase/config";
 
 export default {
   components: {
+    DashboardNavbar,
     SelectedTransactionsCard,
     TransactionCard,
     Spinner,

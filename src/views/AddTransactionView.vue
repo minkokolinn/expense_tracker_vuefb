@@ -22,6 +22,7 @@
               class="form-control"
               name=""
               id="dateId"
+              :max="maxDate"
               required
             />
           </div>
@@ -127,7 +128,7 @@
 
 <script>
 import getCategories from "@/composables/getCategories";
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import {
   collection,
   doc,
@@ -168,8 +169,17 @@ export default {
     let title = ref(null);
     let amount = ref(null);
     let userId = ref(props.userId);
+    let maxDate = ref("");
 
     let loadingInsert = ref(false);
+
+    onMounted(()=>{
+      const todayForMaxDate = new Date();
+      const year = todayForMaxDate.getFullYear();
+      const month = todayForMaxDate.getMonth();
+      const lastDayOfMonth = new Date(year,month+1,0);
+      maxDate.value = lastDayOfMonth.toISOString().split("T")[0];
+    });
 
     let addTransaction = async () => {
       if (loadingInsert.value) {
@@ -245,6 +255,7 @@ export default {
       alert_success,
       userId,
       loadingInsert,
+      maxDate
     };
   },
 };
