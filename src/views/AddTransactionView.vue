@@ -178,6 +178,7 @@ export default {
       const year = todayForMaxDate.getFullYear();
       const month = todayForMaxDate.getMonth();
       const lastDayOfMonth = new Date(year,month+1,0);
+      lastDayOfMonth.setDate(lastDayOfMonth.getDate() + 1);
       maxDate.value = lastDayOfMonth.toISOString().split("T")[0];
     });
 

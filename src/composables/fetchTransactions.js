@@ -18,11 +18,14 @@ let fetchTransactions = () => {
 
   let loadTransactions = async (userId, month, year) => {
     try {
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 1);
+      end.setHours(23, 59, 59);
       const q = query(
         collection(db, "transactions"),
         where("userId", "==", userId),
-        where("date", ">=", new Date(year, month - 1, 1)),
-        where("date", "<=", new Date(year, month, 0)),
+        where("date", ">=", start),
+        where("date", "<=", end),
         orderBy("date", "desc")
       );
       onSnapshot(q, (colSnap) => {
