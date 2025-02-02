@@ -55,12 +55,25 @@ let doUpcomingEoms = async (userId, targetYear, targetMonth, amount, type) => {
       }
       await updateDoc(mDocSnap.ref,{balance:existingBalance});
     }else{
-      let tempBalance = 0;
-      if(type=="in"){
-        tempBalance+=amount;
-      }else if(type=="out"){
-        tempBalance-=amount;
+      let tempMonth = 0;
+      let tempYear = 0;
+      if(m.month==1){
+        tempMonth = 12;
+        tempYear = m.year-1;
+      }else{
+        tempMonth = m.month-1;
+        tempYear = m.year;
       }
+      let preMQuery = query(
+        eomColRef,
+        where("userId","==",userId),
+        where("year","==",tempYear),
+        where("month","==",tempMonth)
+      );
+      let preMColSnap = await getDocs(preMQuery);
+      let preMDocSnap = preMColSnap.docs[0]
+      let tempBalance = preMDocSnap.data().balance;
+      
       await addDocument({
         userId: userId,
         year: m.year,

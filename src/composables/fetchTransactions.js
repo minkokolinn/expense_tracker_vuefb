@@ -20,7 +20,6 @@ let fetchTransactions = () => {
     try {
       const start = new Date(year, month - 1, 1);
       const end = new Date(year, month, 1);
-      end.setHours(23, 59, 59);
       const q = query(
         collection(db, "transactions"),
         where("userId", "==", userId),
