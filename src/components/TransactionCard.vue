@@ -57,6 +57,7 @@ export default {
       cat2: "fas fa-shuttle-van",
       cat3: "fas fa-calendar-alt",
       cat4: "fas fa-ellipsis-h",
+      cat5: "fa-solid fa-question",
       in: "fas fa-hand-holding-usd",
     };
     const categoryIcon = computed(() => {
