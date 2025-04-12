@@ -1,6 +1,6 @@
 <template>
   <div v-if="user" class="container pt-4 bg-white">
-    <DashboardNavbar :user="user"></DashboardNavbar>
+    <DashboardNavbar :user="user" :authuser="authuser"></DashboardNavbar>
     <div class="row mt-3">
       <div class="col-12 col-lg-4 px-3 px-lg-5">
         <div
@@ -23,7 +23,7 @@
               style="font-size: 2rem; margin-right: 10px"
               >{{ user.balance }}</span
             >
-            <span class="text-white">Baht</span>
+            <span class="text-white">{{ user.currency }}</span>
           </div>
         </div>
       </div>
@@ -68,6 +68,7 @@
           >
             <Filter @filterSelectChange="filterSelectChange"></Filter>
             <span
+              v-if="authuser && user.id==authuser.uid"
               class="text-primary fw-bold mx-2 selectText"
               @click="toggleSelect"
               >{{ statusCheckbox === true ? "Deselect" : "Select" }}</span
@@ -112,6 +113,7 @@
             <TransactionCard
               :transaction="transaction"
               :showCheckbox="statusCheckbox"
+              :user="user"
               @selectedId="selectedIdHandle"
             />
           </div>
@@ -138,6 +140,7 @@
       </button>
     </div>
     <router-link
+      v-if="authuser && user.id==authuser.uid"
       :to="{ name: 'AddTransactionView', params: { userId: user.id } }"
     >
       <div class="fab-container">
@@ -179,7 +182,7 @@ import {
 } from "firebase/firestore";
 import deleteTransactions from "@/composables/deleteTransactions";
 import categoricalExpenses from "@/composables/categoricalExpenses";
-import { db } from "@/firebase/config";
+import { db, getCurrentUser } from "@/firebase/config";
 
 export default {
   components: {
@@ -199,12 +202,19 @@ export default {
     let tidsSelected = ref([]);
     let eomValue = ref(null);
 
+    
     // getting user info
     let { loadUser, user, errorUser } = getUser(userId.value);
     loadUser();
     if (errorUser.value) {
       router.push("/");
     }
+    // getting auth user 
+    let authuser = ref(null);
+    onMounted(async()=>{
+      authuser.value = await getCurrentUser();
+    });
+
 
     let getEomValue = async (userId, year, month) => {
       let eomQuery = query(
@@ -339,6 +349,7 @@ export default {
 
     return {
       user,
+      authuser,
       transactions,
       processedTransactions,
       errorTransactions,

@@ -18,12 +18,12 @@
       <i
         v-else
         :class="categoryIcon"
-        class="p-3 bg-primary rounded-3 text-white me-3"
+        class="p-2 bg-primary rounded-3 text-white me-3"
         style="font-size: 15px"
       ></i>
       <div class="d-flex flex-column align-items-start mt-1 p-0">
-        <p class="m-0 fs-5 fw-bold">{{ transaction.title }}</p>
-        <p class="m-0 fs-6">{{ transaction.catId.name }}</p>
+        <p class="m-0 fs-5 fw-bold" style="word-break: break-word;">{{ transaction.title }}</p>
+        <p class="m-0" style="font-size: 14px;">{{ transaction.catId.name }}</p>
       </div>
     </div>
     <div
@@ -33,8 +33,8 @@
         <p class="m-0 fs-4 ms-auto">
           {{ transaction.type === "in" ? "+" : "-" }}
         </p>
-        <p class="m-0 ps-1 fs-5 text-break">{{ transaction.amount }}</p>
-        <p class="m-0 ps-1 fs-6 ms-auto">Baht</p>
+        <p class="m-0 ps-1 fs-6 text-break" style="word-break: break-word;">{{ transaction.amount }}</p>
+        <p class="m-0 ps-1 fs-6 ms-auto">{{ user.currency }}</p>
       </div>
       <div>
         {{ transaction.balanceHistory }}
@@ -47,7 +47,7 @@
 import { computed } from "vue";
 
 export default {
-  props: ["transaction", "showCheckbox"],
+  props: ["transaction", "showCheckbox", "user"],
   emits: ["selectedId"],
   setup(props, context) {
     let t = props.transaction;

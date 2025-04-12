@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, deleteUser } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB1IwALP41-LdMiUpUxH6rfwie4rdHM8fc",
@@ -12,5 +13,15 @@ const firebaseConfig = {
 
 let app = initializeApp(firebaseConfig)
 let db = getFirestore(app)
+let auth = getAuth(app)
 
-export {db}
+function getCurrentUser(){
+  return new Promise((resolve,reject)=>{
+    const unsubscribe = onAuthStateChanged(auth, user=>{
+      unsubscribe();
+      resolve(user);
+    },reject);
+  });
+}
+
+export {db, getCurrentUser, auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, deleteUser}

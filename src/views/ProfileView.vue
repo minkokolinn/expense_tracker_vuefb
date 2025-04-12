@@ -51,7 +51,7 @@ import {
 } from "firebase/firestore";
 import ProfileNavbar from "../components/ProfileNavbar";
 import getUser from "@/composables/getUser";
-import { db } from "@/firebase/config";
+import { db, deleteUser, auth } from "@/firebase/config";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 export default {
@@ -60,6 +60,7 @@ export default {
   },
   props: ["userId"],
   setup(props) {
+    // console.log(props.authuser);
     let errorDataDeleting = ref(false);
     let successDataDeleting = ref(false);
     let router = useRouter();
@@ -132,14 +133,25 @@ export default {
     };
 
     // delete account
-    let deleteUser = async () => {
+    let deleteUserAccount = async () => {
       try {
         let batch = writeBatch(db);
         let userDoc = doc(db, "users", user.value.id);
         batch.delete(userDoc);
         await batch.commit();
-        alert("Deleted your account...");
-        router.push("/")
+
+        let authuser = auth.currentUser;
+        deleteUser(authuser)
+          .then(() => {
+            alert("Deleted your account...");
+            router.push("/");
+          })
+          .catch((err) => {
+            alert("Error deleting user");
+            if (err.code === "auth/requires-recent-login") {
+              alert("User needs to re-authenticate before deletion.");
+            }
+          });
       } catch (error) {
         console.log(error);
       }
@@ -160,8 +172,8 @@ export default {
           "You Can't Delete Account! Please remove all existing data first"
         );
       } else {
-        if(confirm("Are you sure to delete your account?")){
-          await deleteUser();
+        if (confirm("Are you sure to delete your account?")) {
+          await deleteUserAccount();
         }
       }
     };

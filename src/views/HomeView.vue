@@ -8,7 +8,16 @@
         </router-link>
       </div>
     </div>
-    <NewMemberComponent></NewMemberComponent>
+    
+    <div v-if="loginFlag">
+      <Login></Login>
+      <p class="text-center mt-3" style="cursor: pointer;" @click="loginFlag=false"><u>I don't have an account! Let me create a new one</u></p>
+    </div>
+    <div v-else>
+      <Register></Register>
+      <p class="text-center mt-3" style="cursor: pointer;" @click="loginFlag=true"><u>Already have an account!</u></p>
+    </div>
+    
     <div v-if="error">
       {{ error }}
     </div>
@@ -16,21 +25,28 @@
 </template>
 
 <script>
+import Login from '../components/Login'
+import Register from '../components/Register'
 import ProfileBadgeHome from "../components/ProfileBadgeHome";
-import NewMemberComponent from "../components/NewMemberComponent";
 import getUsers from "@/composables/getUsers";
+import { ref } from 'vue';
 export default {
   name: "HomeView",
   components: {
+    Login,
+    Register,
     ProfileBadgeHome,
-    NewMemberComponent,
   },
   setup() {
     let { users, error, load } = getUsers();
     load();
+
+    let loginFlag = ref(true);
+    
     return {
       users,
       error,
+      loginFlag
     };
   },
 };

@@ -4,10 +4,10 @@
 
 <script>
 export default {
-
-}
+  setup() {
+    
+  },
+};
 </script>
 
-<style>
-
-</style>
+<style></style>
